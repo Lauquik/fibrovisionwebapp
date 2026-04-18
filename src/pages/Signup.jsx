@@ -15,66 +15,99 @@ function Signup() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signUp({
+    const { error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { username }   // stores username in auth metadata
+        data: { username }
       }
     })
 
-    if (error) {
-      setError(error.message)
+    if (authError) {
+      setError(authError.message)
       setLoading(false)
-    } else {
-      navigate('/dashboard')
+      return
     }
+
+    navigate('/dashboard')
   }
 
   return (
-    <div style={styles.container}>
-      <h2>Create Account</h2>
-      <form onSubmit={handleSignup} style={styles.form}>
-        <input
-          style={styles.input}
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          required
-        />
-        <input
-          style={styles.input}
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-        <input
-          style={styles.input}
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
-        {error && <p style={styles.error}>{error}</p>}
-        <button style={styles.button} type="submit" disabled={loading}>
-          {loading ? 'Creating account...' : 'Sign Up'}
-        </button>
-      </form>
-      <p>Already have an account? <Link to="/login">Login</Link></p>
+    <div className="app-shell">
+      <div className="auth-page">
+        <div className="auth-layout">
+          <section className="panel hero-panel">
+            <div>
+              <span className="hero-kicker">New Identity</span>
+              <h1 className="hero-title">Initialize Access</h1>
+              <p className="hero-copy">
+                Build your personal revision terminal and keep every topic inside
+                a sharper, darker workflow.
+              </p>
+            </div>
+
+            <div className="hero-stats">
+              <div className="hero-stat">
+                <span className="hero-stat-label">Profile</span>
+                <strong className="hero-stat-value">Encrypted</strong>
+              </div>
+              <div className="hero-stat">
+                <span className="hero-stat-label">Space</span>
+                <strong className="hero-stat-value">Private</strong>
+              </div>
+              <div className="hero-stat">
+                <span className="hero-stat-label">Theme</span>
+                <strong className="hero-stat-value">Neon Dark</strong>
+              </div>
+            </div>
+          </section>
+
+          <section className="panel form-panel">
+            <span className="panel-kicker">Signup</span>
+            <h2 className="panel-title">Create Operator Account</h2>
+            <p className="panel-copy">
+              Set up a username and credentials to start tracking revision rounds.
+            </p>
+
+            <form onSubmit={handleSignup} className="auth-form">
+              <input
+                className="input"
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+              <input
+                className="input"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <input
+                className="input"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              {error && <p className="error-text">{error}</p>}
+              <button className="action-button" type="submit" disabled={loading}>
+                {loading ? 'Provisioning...' : 'Create Account'}
+              </button>
+            </form>
+
+            <p className="auth-switch">
+              Already registered? <Link to="/login">Go to login</Link>
+            </p>
+          </section>
+        </div>
+      </div>
     </div>
   )
-}
-
-const styles = {
-  container: { maxWidth: 400, margin: '100px auto', textAlign: 'center', fontFamily: 'sans-serif' },
-  form: { display: 'flex', flexDirection: 'column', gap: 12 },
-  input: { padding: '10px', fontSize: 16, borderRadius: 6, border: '1px solid #ccc' },
-  button: { padding: '10px', fontSize: 16, borderRadius: 6, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer' },
-  error: { color: 'red', fontSize: 14 }
 }
 
 export default Signup

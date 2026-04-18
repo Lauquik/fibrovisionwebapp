@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 import { supabase } from '../supabaseClient'
+
+const getLocalDateString = () => {
+  const now = new Date()
+  const offsetMs = now.getTimezoneOffset() * 60000
+  return new Date(now.getTime() - offsetMs).toISOString().split('T')[0]
+}
 
 function TodayRevisions({ onRevisionDone }) {
   const [revisions, setRevisions] = useState([])
   const [loading, setLoading] = useState(true)
 
-//   const today = new Date().toISOString().split('T')[0]
-  const today = '2026-04-19'
-
-  useEffect(() => {
-    fetchTodayRevisions()
-  }, [])
+  const today = getLocalDateString()
+  const pendingCount = revisions.filter((revision) => !revision.completed).length
 
   const fetchTodayRevisions = async () => {
     setLoading(true)
@@ -31,137 +33,80 @@ function TodayRevisions({ onRevisionDone }) {
     setLoading(false)
   }
 
-const markComplete = async (id) => {
-  const { error } = await supabase
-    .from('revision_schedule')
-    .update({ completed: true, completed_at: new Date().toISOString() })
-    .eq('id', id)
+  const markComplete = async (id) => {
+    const { error } = await supabase
+      .from('revision_schedule')
+      .update({ completed: true, completed_at: new Date().toISOString() })
+      .eq('id', id)
 
-  if (!error) {
-    setRevisions(prev =>
-      prev.map(rev => rev.id === id ? { ...rev, completed: true } : rev)
-    )
-    onRevisionDone()
+    if (!error) {
+      setRevisions((prev) =>
+        prev.map((revision) =>
+          revision.id === id ? { ...revision, completed: true } : revision
+        )
+      )
+      onRevisionDone()
+    }
   }
-}
 
-  if (loading) return <div style={styles.card}><p style={styles.muted}>Loading today's revisions...</p></div>
+  const loadTodayRevisions = useEffectEvent(async () => {
+    await fetchTodayRevisions()
+  })
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadTodayRevisions()
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [])
 
   return (
-    <div style={styles.card}>
-      <div style={styles.cardHeader}>
-        <h3 style={styles.title}>📅 Today's Revisions</h3>
-        <span style={{
-          ...styles.badge,
-    background: revisions.filter(r => !r.completed).length > 0 ? '#fde68a' : '#d1fae5',
-color: revisions.filter(r => !r.completed).length > 0 ? '#92400e' : '#065f46',
-        }}>
-        {revisions.filter(r => !r.completed).length > 0
-        ? `${revisions.filter(r => !r.completed).length} pending`
-        : 'All done!'}
+    <section className="panel data-card">
+      <div className="card-header">
+        <div>
+          <span className="panel-kicker">Today</span>
+          <h3 className="panel-title">Revision Queue</h3>
+        </div>
+        <span className={`badge ${pendingCount > 0 ? 'warning' : 'success'}`}>
+          {loading ? 'Scanning...' : pendingCount > 0 ? `${pendingCount} pending` : 'All clear'}
         </span>
       </div>
 
-      {revisions.length === 0 ? (
-        <div style={styles.emptyState}>
-          <p style={styles.emptyIcon}>🎉</p>
-          <p style={styles.emptyText}>No revisions due today. Great job!</p>
+      {loading ? (
+        <p className="muted">Loading today&apos;s revisions...</p>
+      ) : revisions.length === 0 ? (
+        <div className="empty-state">
+          <p className="empty-title">No tasks due</p>
+          <p className="empty-copy">Nothing is scheduled for today. Enjoy the quiet screen.</p>
         </div>
       ) : (
-        <div>
-          {revisions.map(rev => (
-            <div key={rev.id} style={styles.row}>
-              <div style={styles.rowLeft}>
-                <span style={styles.revBadge}>Rev {rev.revision_number}/7</span>
+        <div className="revision-list">
+          {revisions.map((revision) => (
+            <div key={revision.id} className="revision-row">
+              <div className="revision-main">
+                <span className="revision-step">Rev {revision.revision_number}/7</span>
                 <div>
-                  <p style={styles.topicTitle}>{rev.topics.title}</p>
-                  {rev.topics.description && (
-                    <p style={styles.topicDesc}>{rev.topics.description}</p>
+                  <p className="topic-name">{revision.topics.title}</p>
+                  {revision.topics.description && (
+                    <p className="topic-desc">{revision.topics.description}</p>
                   )}
                 </div>
               </div>
-                <button
-                style={{
-                    ...styles.doneBtn,
-                    background: rev.completed ? '#16a34a' : '#4f46e5',
-                    cursor: rev.completed ? 'default' : 'pointer'
-                }}
-                onClick={() => !rev.completed && markComplete(rev.id)}
-                disabled={rev.completed}
-                >
-                {rev.completed ? '✓ Done' : 'Mark Done'}
-                </button>
+
+              <button
+                className={revision.completed ? 'ghost-button' : 'action-button'}
+                onClick={() => !revision.completed && markComplete(revision.id)}
+                disabled={revision.completed}
+              >
+                {revision.completed ? 'Completed' : 'Mark Done'}
+              </button>
             </div>
           ))}
         </div>
       )}
-    </div>
+    </section>
   )
-}
-
-const styles = {
-  card: {
-    background: '#fff',
-    border: '1px solid #e5e7eb',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 24,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.07)'
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16
-  },
-  title: { margin: 0, fontSize: 17, fontWeight: 700 },
-  badge: {
-    padding: '4px 12px',
-    borderRadius: 20,
-    fontSize: 13,
-    fontWeight: 600
-  },
-  row: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '12px 14px',
-    borderRadius: 8,
-    marginBottom: 8,
-    background: '#f9fafb',
-    border: '1px solid #e5e7eb'
-  },
-  rowLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12
-  },
-  revBadge: {
-    background: '#e0e7ff',
-    color: '#3730a3',
-    padding: '4px 10px',
-    borderRadius: 20,
-    fontSize: 12,
-    fontWeight: 600,
-    whiteSpace: 'nowrap'
-  },
-  topicTitle: { margin: 0, fontWeight: 600, fontSize: 15 },
-  topicDesc: { margin: '2px 0 0', fontSize: 13, color: '#6b7280' },
-  doneBtn: {
-    padding: '7px 16px',
-    background: '#4f46e5',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 8,
-    cursor: 'pointer',
-    fontWeight: 600,
-    fontSize: 14,
-    whiteSpace: 'nowrap'
-  },
-  emptyState: { textAlign: 'center', padding: '16px 0' },
-  emptyIcon: { fontSize: 32, margin: '0 0 8px' },
-  emptyText: { color: '#6b7280', margin: 0 },
-  muted: { color: '#9ca3af', textAlign: 'center' }
 }
 
 export default TodayRevisions

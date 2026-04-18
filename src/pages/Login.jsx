@@ -14,52 +14,85 @@ function Login() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-      setError(error.message)
+    if (authError) {
+      setError(authError.message)
       setLoading(false)
-    } else {
-      navigate('/dashboard')
+      return
     }
+
+    navigate('/dashboard')
   }
 
   return (
-    <div style={styles.container}>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin} style={styles.form}>
-        <input
-          style={styles.input}
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-        <input
-          style={styles.input}
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
-        {error && <p style={styles.error}>{error}</p>}
-        <button style={styles.button} type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-      <p>Don't have an account? <Link to="/signup">Sign Up</Link></p>
+    <div className="app-shell">
+      <div className="auth-page">
+        <div className="auth-layout">
+          <section className="panel hero-panel">
+            <div>
+              <span className="hero-kicker">Secure Access</span>
+              <h1 className="hero-title">Revision Control</h1>
+              <p className="hero-copy">
+                Step into a dark command-center workspace built for focused study,
+                clean signal, and zero visual noise.
+              </p>
+            </div>
+
+            <div className="hero-stats">
+              <div className="hero-stat">
+                <span className="hero-stat-label">Mode</span>
+                <strong className="hero-stat-value">Dark Ops</strong>
+              </div>
+              <div className="hero-stat">
+                <span className="hero-stat-label">Focus</span>
+                <strong className="hero-stat-value">Revision</strong>
+              </div>
+              <div className="hero-stat">
+                <span className="hero-stat-label">Status</span>
+                <strong className="hero-stat-value">Live</strong>
+              </div>
+            </div>
+          </section>
+
+          <section className="panel form-panel">
+            <span className="panel-kicker">Login</span>
+            <h2 className="panel-title">Authenticate Session</h2>
+            <p className="panel-copy">
+              Enter your credentials to access your revision dashboard.
+            </p>
+
+            <form onSubmit={handleLogin} className="auth-form">
+              <input
+                className="input"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <input
+                className="input"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              {error && <p className="error-text">{error}</p>}
+              <button className="action-button" type="submit" disabled={loading}>
+                {loading ? 'Authorizing...' : 'Enter Dashboard'}
+              </button>
+            </form>
+
+            <p className="auth-switch">
+              Need an account? <Link to="/signup">Create one</Link>
+            </p>
+          </section>
+        </div>
+      </div>
     </div>
   )
-}
-
-const styles = {
-  container: { maxWidth: 400, margin: '100px auto', textAlign: 'center', fontFamily: 'sans-serif' },
-  form: { display: 'flex', flexDirection: 'column', gap: 12 },
-  input: { padding: '10px', fontSize: 16, borderRadius: 6, border: '1px solid #ccc' },
-  button: { padding: '10px', fontSize: 16, borderRadius: 6, background: '#4f46e5', color: '#fff', border: 'none', cursor: 'pointer' },
-  error: { color: 'red', fontSize: 14 }
 }
 
 export default Login

@@ -12,61 +12,61 @@ function AddTopicForm({ onTopicAdded }) {
     setLoading(true)
     setError('')
 
-    // Get current logged in user
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
 
-    const { error } = await supabase.from('topics').insert({
+    const { error: insertError } = await supabase.from('topics').insert({
       user_id: user.id,
       title,
       description,
-      studied_at: new Date().toISOString().split('T')[0] // today's date
+      studied_at: new Date().toISOString().split('T')[0]
     })
 
-    if (error) {
-      setError(error.message)
-    } else {
-      setTitle('')
-      setDescription('')
-      onTopicAdded() // refresh parent
+    if (insertError) {
+      setError(insertError.message)
+      setLoading(false)
+      return
     }
 
+    setTitle('')
+    setDescription('')
+    onTopicAdded()
     setLoading(false)
   }
 
   return (
-    <div style={styles.card}>
-      <h3>Add New Topic</h3>
-      <form onSubmit={handleSubmit} style={styles.form}>
+    <section className="panel data-card">
+      <div className="card-header">
+        <div>
+          <span className="panel-kicker">New Topic</span>
+          <h3 className="panel-title">Inject Study Target</h3>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="stack">
         <input
-          style={styles.input}
+          className="input"
           type="text"
-          placeholder="Topic title (e.g. Photosynthesis)"
+          placeholder="Topic title"
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={(e) => setTitle(e.target.value)}
           required
         />
         <textarea
-          style={{ ...styles.input, resize: 'vertical'}}
-          placeholder="Short description (optional)"
+          className="textarea"
+          placeholder="Short description or memory hook"
           value={description}
-          onChange={e => setDescription(e.target.value)}
-          rows={3}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={4}
         />
-        {error && <p style={styles.error}>{error}</p>}
-        <button style={styles.button} type="submit" disabled={loading}>
-          {loading ? 'Adding...' : '+ Add Topic'}
+        {error && <p className="error-text">{error}</p>}
+        <button className="action-button" type="submit" disabled={loading}>
+          {loading ? 'Saving Topic...' : 'Add Topic'}
         </button>
       </form>
-    </div>
+    </section>
   )
-}
-
-const styles = {
-  card: { background: '#f9fafb', padding: 20, borderRadius: 10, marginBottom: 24, border: '1px solid #e5e7eb' },
-  form: { display: 'flex', flexDirection: 'column', gap: 10 },
-  input: { padding: '10px', fontSize: 15, borderRadius: 6, background: '#ffffff', border: '1px solid #181313', fontFamily: 'sans-serif', color: 'black' },
-  button: { padding: '10px', fontSize: 15, borderRadius: 6, background: '#4f46e5', color: '#eadddd', border: 'none', cursor: 'pointer' },
-  error: { color: 'red', fontSize: 13 }
 }
 
 export default AddTopicForm
