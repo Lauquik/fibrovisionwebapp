@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -8,6 +8,8 @@ function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const message = location.state?.message ?? ''
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -79,6 +81,7 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              {message && <p className="status-text">{message}</p>}
               {error && <p className="error-text">{error}</p>}
               <button className="action-button" type="submit" disabled={loading}>
                 {loading ? 'Authorizing...' : 'Enter Dashboard'}

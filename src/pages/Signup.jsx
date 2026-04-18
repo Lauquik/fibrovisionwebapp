@@ -29,7 +29,11 @@ function Signup() {
       return
     }
 
-    navigate('/dashboard')
+    navigate('/login', {
+      state: {
+        message: 'Check your inbox and confirm your email to finish signing up.'
+      }
+    })
   }
 
   return (
