@@ -85,7 +85,7 @@ function TodayRevisions({ onRevisionDone }) {
           {revisions.map((revision) => (
             <div key={revision.id} className="revision-row">
               <div className="revision-main">
-                <span className="revision-step">Rev {revision.revision_number}/7</span>
+                <span className="revision-step">Rev {revision.revision_number}/6</span>
                 <div>
                   <p className="topic-name">{revision.topics.title}</p>
                   {revision.topics.description && (
