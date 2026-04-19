@@ -180,6 +180,7 @@ p {
   align-items: center;
   gap: 8px;
   padding: 7px 12px;
+  margin: 3%;
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--accent);
