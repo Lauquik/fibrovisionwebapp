@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 
@@ -10,6 +10,27 @@ function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const message = location.state?.message ?? ''
+
+  useEffect(() => {
+    let isMounted = true
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted || !session) return
+      navigate('/dashboard', { replace: true })
+    })
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted || !session) return
+      navigate('/dashboard', { replace: true })
+    })
+
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [navigate])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -24,7 +45,7 @@ function Login() {
       return
     }
 
-    navigate('/dashboard')
+    navigate('/dashboard', { replace: true })
   }
 
   return (
